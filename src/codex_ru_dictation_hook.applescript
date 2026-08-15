@@ -2,6 +2,8 @@ property lastLine : ""
 property lastPastedId : ""
 property historyPath : ""
 property logPath : ""
+property maxLogBytes : 5242880
+property retainedLogBytes : 4194304
 
 on run
   set historyPath to (POSIX path of (path to home folder)) & ".codex/transcription-history.jsonl"
@@ -27,9 +29,8 @@ on pollOnce()
   end try
 
   if currentLine is "" then return
-  if currentLine is not lastLine then
-    set lastLine to currentLine
-  end if
+  if currentLine is lastLine then return
+  set lastLine to currentLine
 
   set parsed to my parseHistoryLine(lastLine)
   if parsed is missing value then return
@@ -96,7 +97,9 @@ end isRussianInputSource
 
 on logMessage(messageText)
   try
-    do shell script "/bin/mkdir -p " & quoted form of ((POSIX path of (path to home folder)) & ".codex/log") & "; /bin/echo " & quoted form of (((current date) as text) & " " & messageText) & " >> " & quoted form of logPath
+    set logDir to (POSIX path of (path to home folder)) & ".codex/log"
+    set logLine to ((current date) as text) & " " & messageText
+    set rotateCommand to "if [ -f " & quoted form of logPath & " ] && [ $(/usr/bin/stat -f%z " & quoted form of logPath & ") -gt " & maxLogBytes & " ]; then /usr/bin/tail -c " & retainedLogBytes & " " & quoted form of logPath & " > " & quoted form of (logPath & ".tmp") & " && /bin/mv " & quoted form of (logPath & ".tmp") & " " & quoted form of logPath & "; fi"
+    do shell script "/bin/mkdir -p " & quoted form of logDir & "; " & rotateCommand & "; /usr/bin/printf '%s\\n' " & quoted form of logLine & " >> " & quoted form of logPath
   end try
 end logMessage
-
