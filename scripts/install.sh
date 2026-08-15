@@ -20,8 +20,8 @@ if [[ ! -d "$src_app" ]]; then
   fi
   mkdir -p "$package_dir/app"
   osacompile -o "$build_app" "$src_script"
-  /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.alex.codex-ru-dictation-hook" "$build_app/Contents/Info.plist" 2>/dev/null ||
-    /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.alex.codex-ru-dictation-hook" "$build_app/Contents/Info.plist"
+  /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.alex.codex-ru-dictation-hook" "$build_app/Contents/Info.plist" 2>/dev/null ||
+    /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.alex.codex-ru-dictation-hook" "$build_app/Contents/Info.plist"
   /usr/libexec/PlistBuddy -c "Set :LSUIElement true" "$build_app/Contents/Info.plist" 2>/dev/null ||
     /usr/libexec/PlistBuddy -c "Add :LSUIElement bool true" "$build_app/Contents/Info.plist"
   codesign --force --deep --sign - "$build_app" >/dev/null 2>&1 || true
@@ -36,6 +36,8 @@ launchctl bootout "$domain" "$plist" 2>/dev/null || true
 rm -rf "$dst_app"
 ditto "$src_app" "$dst_app"
 xattr -dr com.apple.quarantine "$dst_app" 2>/dev/null || true
+/usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string com.alex.codex-ru-dictation-hook" "$dst_app/Contents/Info.plist" 2>/dev/null ||
+  /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier com.alex.codex-ru-dictation-hook" "$dst_app/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :LSUIElement true" "$dst_app/Contents/Info.plist" 2>/dev/null ||
   /usr/libexec/PlistBuddy -c "Add :LSUIElement bool true" "$dst_app/Contents/Info.plist"
 codesign --force --deep --sign - "$dst_app" >/dev/null 2>&1 || true
